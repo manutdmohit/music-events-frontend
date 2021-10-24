@@ -7,21 +7,11 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
 import Layout from '@/components/Layout';
+import Modal from '@/components/Modal';
 import { API_URL } from '@/config/index';
 import styles from '@/styles/Form.module.css';
 
-export async function getServerSideProps({ params: { id } }) {
-  const res = await fetch(`${API_URL}/events/${id}`);
-  const evt = await res.json();
-
-  return {
-    props: {
-      evt,
-    },
-  };
-}
-
-export default function EditEventPage({ evt }) {
+export default function EditEventPage({ evt, token }) {
   const [values, setValues] = useState({
     name: evt.name,
     performers: evt.performers,
@@ -31,10 +21,10 @@ export default function EditEventPage({ evt }) {
     time: evt.time,
     description: evt.description,
   });
-
-  const [imagePreview, setIMagePreview] = useState(
+  const [imagePreview, setImagePreview] = useState(
     evt.image ? evt.image.formats.thumbnail.url : null
   );
+  const [showModal, setShowModal] = useState(false);
 
   const router = useRouter();
 
@@ -47,18 +37,23 @@ export default function EditEventPage({ evt }) {
     );
 
     if (hasEmptyFields) {
-      toast.error('Please fill all the fields');
+      toast.error('Please fill in all fields');
     }
 
     const res = await fetch(`${API_URL}/events/${evt.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(values),
     });
 
     if (!res.ok) {
+      if (res.status === 403 || res.status === 401) {
+        toast.error('Unauthorized');
+        return;
+      }
       toast.error('Something Went Wrong');
     } else {
       const evt = await res.json();
@@ -71,8 +66,15 @@ export default function EditEventPage({ evt }) {
     setValues({ ...values, [name]: value });
   };
 
+  const imageUploaded = async (e) => {
+    const res = await fetch(`${API_URL}/events/${evt.id}`);
+    const data = await res.json();
+    setImagePreview(data.image.formats.thumbnail.url);
+    setShowModal(false);
+  };
+
   return (
-    <Layout title="Edit Event">
+    <Layout title="Add New Event">
       <Link href="/events">Go Back</Link>
       <h1>Edit Event</h1>
       <ToastContainer />
@@ -159,16 +161,36 @@ export default function EditEventPage({ evt }) {
         <Image src={imagePreview} height={100} width={170} />
       ) : (
         <div>
-          <p>No Image Uploaded</p>
+          <p>No image uploaded</p>
         </div>
       )}
 
-        <div>
-            <button className="btn-secondary">
-                <FaImage/> Set Image
-            </button>
-        </div>
+      <div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="btn-secondary btn-icon"
+        >
+          <FaImage /> Set Image
+        </button>
+      </div>
 
+      <Modal show={showModal} onClose={() => setShowModal(false)}>
+       <h1>Upload Image</h1>
+      </Modal>
     </Layout>
   );
+}
+
+export async function getServerSideProps({ params: { id }}) {
+
+
+  const res = await fetch(`${API_URL}/events/${id}`);
+  const evt = await res.json();
+
+  return {
+    props: {
+      evt,
+      
+    },
+  };
 }
