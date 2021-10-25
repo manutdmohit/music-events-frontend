@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Layout from '@/components/Layout';
 import Modal from '@/components/Modal';
+import ImageUpload from '@/components/ImageUpload';
 import { API_URL } from '@/config/index';
 import styles from '@/styles/Form.module.css';
 
@@ -44,16 +45,11 @@ export default function EditEventPage({ evt, token }) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(values),
     });
 
     if (!res.ok) {
-      if (res.status === 403 || res.status === 401) {
-        toast.error('Unauthorized');
-        return;
-      }
       toast.error('Something Went Wrong');
     } else {
       const evt = await res.json();
@@ -175,22 +171,23 @@ export default function EditEventPage({ evt, token }) {
       </div>
 
       <Modal show={showModal} onClose={() => setShowModal(false)}>
-       <h1>Upload Image</h1>
+        <ImageUpload
+          evtId={evt.id}
+          imageUploaded={imageUploaded}
+          token={token}
+        />
       </Modal>
     </Layout>
   );
 }
 
-export async function getServerSideProps({ params: { id }}) {
-
-
+export async function getServerSideProps({ params: { id } }) {
   const res = await fetch(`${API_URL}/events/${id}`);
   const evt = await res.json();
 
   return {
     props: {
       evt,
-      
     },
   };
 }
