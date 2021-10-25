@@ -3,14 +3,16 @@ import EventItem from '@/components/EventItem';
 import Layout from '@/components/Layout';
 import { API_URL } from '@/config/index';
 
-// export const getServerSideProps = async () => {
-//   const res = await fetch(`${API_URL}/api/events`);
+// export async function getServerSideProps() {
+  
+//   const res = await fetch(`${API_URL}/events?_sort=date:ASC`);
 //   const events = await res.json();
 
 //   return {
 //     props: { events },
 //   };
-// };
+// }
+
 export const getStaticProps = async () => {
   const res = await fetch(`${API_URL}/events?_sort=date:ASC&_limit=3`);
   const events = await res.json();
