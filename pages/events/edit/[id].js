@@ -12,6 +12,19 @@ import ImageUpload from '@/components/ImageUpload';
 import { API_URL } from '@/config/index';
 import styles from '@/styles/Form.module.css';
 
+export async function getServerSideProps({ params: { id }, req }) {
+  const res = await fetch(`${API_URL}/events/${id}`);
+  const evt = await res.json();
+
+  console.log(req.headers.cookie);
+
+  return {
+    props: {
+      evt,
+    },
+  };
+}
+
 export default function EditEventPage({ evt, token }) {
   const [values, setValues] = useState({
     name: evt.name,
@@ -179,15 +192,4 @@ export default function EditEventPage({ evt, token }) {
       </Modal>
     </Layout>
   );
-}
-
-export async function getServerSideProps({ params: { id } }) {
-  const res = await fetch(`${API_URL}/events/${id}`);
-  const evt = await res.json();
-
-  return {
-    props: {
-      evt,
-    },
-  };
 }
