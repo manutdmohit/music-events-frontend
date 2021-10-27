@@ -27,7 +27,7 @@ export default function RegisterPage() {
 
     register({ username, email, password });
     toast.success('Registration Successful',{
-      autoClose: 1000
+      autoClose: 1500
     });
   };
 
